@@ -6,6 +6,25 @@ This project provides tools to analyze biological structures from OME-Zarr volum
 
 ## Quick Start (Recommended)
 
+### 1. Create and Activate the Environment
+
+```bash
+conda create -n signal-analyzer python=3.10 -y
+conda activate signal-analyzer
+```
+
+### 2. Install Requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## Alternative: Docker Setup
+
+If you prefer to run the tools using Docker, follow these steps:
+
 ### 1. Install Docker
 
 Download and install Docker for your system:
@@ -26,8 +45,6 @@ Verify Docker is working:
 docker --version
 docker-compose --version
 ```
-
----
 
 ### 2. Run the App
 
@@ -55,6 +72,8 @@ You’ll be prompted to enter the path to your **Zarr dataset directory**. The s
 ---
 
 ## 3. Start Analyzing
+
+Once your environment is set up (via Conda or Docker), you can run the following analysis modules:
 
 ### Cell Analyzer
 
