@@ -1,0 +1,20 @@
+# Core data handling and parallel processing
+zarr
+dask[distributed]
+bokeh
+tqdm
+
+# Scientific computing and image processing
+scikit-image
+scipy
+numba
+numpy
+
+# Reporting
+pandas
+openpyxl
+
+# File I/O for various formats
+nibabel
+tifffile
+imageio

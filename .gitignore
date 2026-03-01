@@ -1,0 +1,6 @@
+__pycache__/
+*.log
+*.pyc
+.env
+.devcontainer/
+.ds_store
