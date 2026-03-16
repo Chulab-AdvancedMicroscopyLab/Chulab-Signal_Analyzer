@@ -1,6 +1,6 @@
 # Zarr File Analyzer
 
-This project provides tools to analyze biological structures from OME-Zarr volumes. Two main modules are provided:
+This project provides tools to analyze biological structures from OME-Zarr volumes. Two main modules are provided: Cell Analyzer and Vessel Analyzer. Both tools automatically generate a comprehensive **Excel (.xlsx)** report and a flat **CSV (.csv)** summary file upon completion.
 
 ---
 
@@ -23,93 +23,79 @@ pip install -r requirements.txt
 
 ## Alternative: Docker Setup
 
-If you prefer to run the tools using Docker, follow these steps:
+If you prefer to run the tools using Docker, follow these standard steps:
 
-### 1. Install Docker
+### 1. Build the Docker Image
 
-Download and install Docker for your system:
-
-- [Docker Desktop for Windows/macOS](https://www.docker.com/products/docker-desktop)
-- For Ubuntu/Linux:
+Navigate to the project directory and build the Docker image:
 
 ```bash
-sudo apt update
-sudo apt install docker.io docker-compose
-sudo systemctl enable docker
-sudo systemctl start docker
+docker build -t signal-analyzer .
 ```
 
-Verify Docker is working:
+### 2. Run the Docker Container
+
+You can run the container by mounting your dataset directory to `/workspace/datas` inside the container:
 
 ```bash
-docker --version
-docker-compose --version
+docker run -it --rm -v /path/to/your/dataset:/workspace/datas signal-analyzer bash
 ```
 
-### 2. Run the App
-
-#### For Linux/macOS:
-
-```bash
-chmod +x run.sh
-./run.sh
-```
-
-#### For Windows (PowerShell):
-
-```powershell
-./run.ps1
-```
-
-You’ll be prompted to enter the path to your **Zarr dataset directory**. The script will handle everything from Docker build to startup.
-
-#### What the Script Does
-
-- Dynamically generates a `docker-compose.yml`
-- Mounts your dataset at `/workspace/datas`
-- Cleans up Docker resources after exit
+From inside the container, you can run the analyzer scripts as shown below.
 
 ---
 
 ## 3. Start Analyzing
 
-Once your environment is set up (via Conda or Docker), you can run the following analysis modules:
+Once your environment is set up (via Conda or Docker), you can run the following analysis modules.
 
 ### Cell Analyzer
 
+Extracts unique non-zero values, detects local maxima, and tallies cell counts per brain region and hemisphere.
+
 ```bash
 python cell_analyzer.py \
-    <mask_path> \
-    <annotation_path> \
-    <output_path> \
+    --mask_path <mask_path> \
+    --annotation_path <annotation_path> \
+    --output_path <output_path> \
     --hemasphere_path <hemasphere_zarr> \
-    --chunk-size 128 128 128
+    --chunk-size 128 128 128 \
+    --n-workers 8 \
+    --numba-threads 8
 ```
 
-- `mask_path`: Path to the neuron mask (e.g., `neun_mask_ome.zarr`)
-- `annotation_path`: Path to annotation zarr file
-- `output_path`: Directory to store result files
-- `--hemasphere_path`: (Optional) Path to another zarr dataset
+- `--mask_path`: Path to the cell mask (e.g., `neun_mask_ome.zarr`)
+- `--annotation_path`: Path to annotation zarr file
+- `--output_path`: Directory to store result files
+- `--hemasphere_path`: (Optional) Path to hemisphere segmentation zarr dataset (for left/right hemisphere splitting)
 - `--chunk-size`: (Optional) Chunk size for Dask arrays
+- `--n-workers`: (Optional) Number of Dask worker processes (default: 8)
+- `--numba-threads`: (Optional) Number of Numba threads (default: 8)
 
 ---
 
 ### Vessel Analyzer
 
+Calculates advanced morphological metrics for vessels including volume, length, average radius, and counts of both **bifurcations (3 branches)** and **trifurcations (4+ branches)**.
+
 ```bash
 python vessel_analyzer.py \
-    <mask_path> \
-    <annotation_path> \
-    <output_path> \
+    --mask_path <mask_path> \
+    --annotation_path <annotation_path> \
+    --output_path <output_path> \
     --hemasphere_path <hemasphere_zarr> \
-    --chunk-size 128 128 128
+    --chunk-size 128 128 128 \
+    --n-workers 8 \
+    --numba-threads 8
 ```
 
-- `mask_path`: Path to the neuron mask (e.g., `lectin_mask_ome.zarr`)
-- `annotation_path`: Path to annotation zarr file
-- `output_path`: Directory to store result files
-- `--hemasphere_path`: (Optional) Path to another zarr dataset
+- `--mask_path`: Path to the vessel mask (e.g., `lectin_mask_ome.zarr`)
+- `--annotation_path`: Path to annotation zarr file
+- `--output_path`: Directory to store result files
+- `--hemasphere_path`: (Optional) Path to hemisphere segmentation zarr dataset
 - `--chunk-size`: (Optional) Chunk size for Dask arrays
+- `--n-workers`: (Optional) Number of Dask worker processes (default: 8)
+- `--numba-threads`: (Optional) Number of Numba threads (default: 8)
 
 ---
 
