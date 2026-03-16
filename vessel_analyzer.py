@@ -1,9 +1,9 @@
 """
 Usage:
-python vessel_analyzer.py \
-    --mask_path             ./datas/lectin_mask_ome.zarr/0 \
-    --annotation_path       ./datas/annotation_ome.zarr/0 \
-    --output_path           ./datas/lectin_output_1 \
+python Chulab-Signal_Analyzer/vessel_analyzer.py \
+    --mask_path             /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_mask.zarr \
+    --annotation_path       /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_mask.zarr \
+    --output_path           /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_output \
     --chunk-size            128 128 128
 """
 
@@ -21,6 +21,7 @@ from scipy.ndimage import convolve, label, distance_transform_edt, median_filter
 
 from utils.analyzer_count_tools import numba_unique_vessel
 from utils.analyzer_report_tools import create_vessel_report
+from utils.concurrency import initialize_concurrency
 
 def check_and_load_zarr(path, component=None, chunk_size=None):
     """
@@ -71,7 +72,7 @@ def process_filter_chunk(block, filter_size):
     return final_mask
 
 def process_skeletonize_chunk(block):
-    """Skeletonize a binary 3D block and mark bifurcation points."""
+    """Skeletonize a binary 3D block and mark bifurcation/trifurcation points."""
     block[block > 0] = 1
     skeleton = skeletonize(block.astype(np.uint8)).astype(np.uint8)
     skeleton *= block
@@ -79,13 +80,22 @@ def process_skeletonize_chunk(block):
     kernel = np.ones((3, 3, 3), dtype=np.uint8)
     kernel[1, 1, 1] = 0
     neighbor_count = convolve(skeleton, kernel, mode='constant')
-    bifurcation_candidates = (skeleton > 0) & (neighbor_count >= 3)
-    labeled_array, _ = label(bifurcation_candidates)  # type: ignore
-    labeled_array = labeled_array.astype(np.int32)
     
-    for region in regionprops(labeled_array):
+    bifurcation_candidates = (skeleton > 0) & (neighbor_count == 3)
+    labeled_bifurcations, _ = label(bifurcation_candidates)  # type: ignore
+    labeled_bifurcations = labeled_bifurcations.astype(np.int32)
+    
+    for region in regionprops(labeled_bifurcations):
         com = tuple(np.round(region.centroid).astype(int))
         skeleton[com] = 2
+
+    trifurcation_candidates = (skeleton > 0) & (neighbor_count >= 4)
+    labeled_trifurcations, _ = label(trifurcation_candidates)  # type: ignore
+    labeled_trifurcations = labeled_trifurcations.astype(np.int32)
+    
+    for region in regionprops(labeled_trifurcations):
+        com = tuple(np.round(region.centroid).astype(int))
+        skeleton[com] = 3
 
     return skeleton
 
@@ -111,25 +121,31 @@ def process_calculation_chunk(anno, hema, mask, skel, dist):
 
 def process_analysis_report(region_signals, voxel, output_name, output_path):
     """
-    Generate Excel reports from signal dictionaries for multiple brain regions.
+    Generate Excel and CSV reports from signal dictionaries for multiple brain regions.
 
     Parameters:
         region_signals (dict): Keys are region names, values are signal dictionaries.
         voxel (tuple): Voxel size as a 3D tuple (x, y, z).
         output_name (str): Base name for the output files.
         output_path (str): Directory to save the reports.
-        structure_path (str): Path to the structure CSV file.
-        target_id (int, optional): ID for filtering specific brain structures.
     """
-    structure_path='./utils/structures.csv'
-    target_id=None
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    structure_path = os.path.join(script_dir, 'utils', 'structures.csv')
+    target_id = None
 
     os.makedirs(output_path, exist_ok=True)
     voxel_volume = np.prod(voxel)
 
     for region_name, signal in region_signals.items():
-        output_file = os.path.join(output_path, f'{output_name}_{region_name}_report.xlsx')
-        create_vessel_report(signal, voxel_volume, output_file, structure_path, target_id)
+        output_file_xlsx = os.path.join(output_path, f'{output_name}_{region_name}_report.xlsx')
+        output_file_csv = os.path.join(output_path, f'{output_name}_{region_name}_report.csv')
+        
+        # Generate Excel and get the aggregated dataframe for CSV export
+        summary_df = create_vessel_report(signal, voxel_volume, output_file_xlsx, structure_path, target_id)
+        
+        if summary_df is not None:
+            summary_df.to_csv(output_file_csv)
+            print(f"📊 Saved hierarchical CSV: {output_file_csv}")
 
 def main():
     """
@@ -170,6 +186,8 @@ def main():
                         help="Sigma of the gaussian filter (default: 0.3)")
     parser.add_argument("--z-per-slab", type=int, default=16,
                         help="Number of Z-slices to process per slab (default: 16). Adjust based on memory.")
+    parser.add_argument("--numba-threads", type=int, default=8,
+                        help="Number of Numba threads to use (default: 8).")
     parser.add_argument("--n-workers", type=int, default=8,
                         help="Number of Dask worker processes to start (default: 8).")
     parser.add_argument("--memory-limit", type=str, default='32GB',
@@ -177,6 +195,8 @@ def main():
 
     args = parser.parse_args()
     chunk_size = tuple(args.chunk_size) if args.chunk_size else None
+
+    initialize_concurrency(numba_threads=args.numba_threads, dask_threads=args.n_workers)
 
     # Note: Dask cluster setup is parsed but not yet fully integrated.
 
@@ -189,17 +209,17 @@ def main():
     print(f"Mask shape: {mask_data.shape}") # type: ignore
     print(f"Annotation shape: {anno_data.shape}") # type: ignore
 
-    # Step 1: Filtering
-    filtered_data = check_and_load_zarr(args.output_path, "filtered_mask.zarr", chunk_size=chunk_size)
-    if filtered_data is None:
-        print("🔄 Applying Gaussian filter...")
-        with ProgressBar():
-            filtered_data = da.map_blocks(
-                process_filter_chunk,
-                mask_data, dtype=np.uint8, filter_sigma=args.filter_sigma
-            )
-            filtered_data.to_zarr(os.path.join(args.output_path, "filtered_mask.zarr"), overwrite=True)
-            filtered_data = da.from_zarr(os.path.join(args.output_path, "filtered_mask.zarr"))
+    # # Step 1: Filtering
+    # filtered_data = check_and_load_zarr(args.output_path, "filtered_mask.zarr", chunk_size=chunk_size)
+    # if filtered_data is None:
+    #     print("🔄 Applying Gaussian filter...")
+    #     with ProgressBar():
+    #         filtered_data = da.map_blocks(
+    #             process_filter_chunk,
+    #             mask_data, dtype=np.uint8
+    #         )
+    #         filtered_data.to_zarr(os.path.join(args.output_path, "filtered_mask.zarr"), overwrite=True)
+    #         filtered_data = da.from_zarr(os.path.join(args.output_path, "filtered_mask.zarr"))
 
     # Step 2: Skeletonization
     skeleton_data = check_and_load_zarr(args.output_path, "skeletonize_mask.zarr", chunk_size=chunk_size)
@@ -261,25 +281,25 @@ def main():
 
         for value, nums in result.items():
             if value not in full_brain_signal:
-                full_brain_signal[value] = nums[:6]
+                full_brain_signal[value] = nums[:7]
             else:
-                full_brain_signal[value][:5] += nums[:5]
-                if nums[5] > full_brain_signal[value][5]:
-                    full_brain_signal[value][5] = nums[5]
+                full_brain_signal[value][:6] += nums[:6]
+                if nums[6] > full_brain_signal[value][6]:
+                    full_brain_signal[value][6] = nums[6]
 
             if value not in left_brain_signal:
-                left_brain_signal[value] = nums[6:12]
+                left_brain_signal[value] = nums[7:14]
             else:
-                left_brain_signal[value][:5] += nums[6:11]
-                if nums[11] > left_brain_signal[value][5]:
-                    left_brain_signal[value][5] = nums[11]
+                left_brain_signal[value][:6] += nums[7:13]
+                if nums[13] > left_brain_signal[value][6]:
+                    left_brain_signal[value][6] = nums[13]
 
             if value not in right_brain_signal:
-                right_brain_signal[value] = nums[12:]
+                right_brain_signal[value] = nums[14:]
             else:
-                right_brain_signal[value][:5] += nums[12:17]
-                if nums[17] > right_brain_signal[value][5]:
-                    right_brain_signal[value][5] = nums[17]
+                right_brain_signal[value][:6] += nums[14:20]
+                if nums[20] > right_brain_signal[value][6]:
+                    right_brain_signal[value][6] = nums[20]
 
     # Step 5: Report Generation
     print("📄 Generating final report...")
