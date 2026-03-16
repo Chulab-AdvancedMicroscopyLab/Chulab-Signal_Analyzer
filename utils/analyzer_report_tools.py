@@ -59,6 +59,8 @@ def create_cell_report(signal, voxel, output_path, structure_path = './structure
             sheet['total_volume_mm3'] = sheet['total_volume'] * voxel
             sheet['total_cell_density'] = sheet['total_cells']/sheet['total_volume']
             sheet.fillna(0).to_excel(writer, sheet_name=f"Target Region", index=False)
+    
+    return summary
 
 def create_vessel_report(signal, voxel, output_path, structure_path = './structures.csv', target_id = None):
     """
@@ -78,7 +80,7 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
         
         summary = pd.DataFrame(list_signal, columns=[
             'id', 'total_volume', 'total_signal_volume', 'total_skeleton_volume', 
-            'total_bifurcations_count', 'total_radius_amount', 'max_radius'
+            'total_bifurcations_count', 'total_trifurcations_count', 'total_radius_amount', 'max_radius'
         ])
         summary = pd.merge(structure, summary, on='id', how='left').fillna(0)
         summary.set_index('id', inplace = True)
@@ -98,6 +100,7 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
                 summary.at[id, 'total_signal_volume'] += temp['total_signal_volume'].sum()
                 summary.at[id, 'total_skeleton_volume'] += temp['total_skeleton_volume'].sum()
                 summary.at[id, 'total_bifurcations_count'] += temp['total_bifurcations_count'].sum()
+                summary.at[id, 'total_trifurcations_count'] += temp['total_trifurcations_count'].sum()
                 summary.at[id, 'total_radius_amount'] += temp['total_radius_amount'].sum()
                 if pd.isna(summary.at[id, 'max_radius']):
                     summary.at[id, 'max_radius'] = temp['max_radius'].max()
@@ -110,13 +113,14 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
                 sheet['total_signal_volume'].append(summary.at[id, 'total_signal_volume'])
                 sheet['total_skeleton_volume'].append(summary.at[id, 'total_skeleton_volume'])
                 sheet['total_bifurcations_count'].append(summary.at[id, 'total_bifurcations_count'])
+                sheet['total_trifurcations_count'].append(summary.at[id, 'total_trifurcations_count'])
                 sheet['total_radius_amount'].append(summary.at[id, 'total_radius_amount'])
                 sheet['max_radius'].append(summary.at[id, 'max_radius'])
  
             sheet = pd.DataFrame(sheet) #.sort_values(by=['total_bifurcations_count'], ascending=False)
             sheet = sheet[[
                 'structure_name', 'acronym', 'total_volume', 'total_signal_volume', 
-                'total_skeleton_volume', 'total_bifurcations_count', 'total_radius_amount', 'max_radius'
+                'total_skeleton_volume', 'total_bifurcations_count', 'total_trifurcations_count', 'total_radius_amount', 'max_radius'
             ]]
             
             sheet['total_volume_mm3'] = sheet['total_volume'] * voxel
@@ -126,6 +130,7 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
             sheet['total_signal_density'] = sheet['total_signal_volume'] / sheet['total_volume']
             sheet['total_skeleton_density'] = sheet['total_skeleton_volume'] / sheet['total_volume']
             sheet['total_bifurcations_density'] = sheet['total_bifurcations_count'] / sheet['total_volume']
+            sheet['total_trifurcations_density'] = sheet['total_trifurcations_count'] / sheet['total_volume']
             sheet['mean_radius'] = sheet['total_radius_amount'] / sheet['total_signal_volume']
             
             sheet.fillna(0).to_excel(writer, sheet_name=f"Tier {tier}", index=False)
@@ -139,13 +144,14 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
                 sheet['total_signal_volume'].append(summary.at[id, 'total_signal_volume'])
                 sheet['total_skeleton_volume'].append(summary.at[id, 'total_skeleton_volume'])
                 sheet['total_bifurcations_count'].append(summary.at[id, 'total_bifurcations_count'])
+                sheet['total_trifurcations_count'].append(summary.at[id, 'total_trifurcations_count'])
                 sheet['total_radius_amount'].append(summary.at[id, 'total_radius_amount'])
                 sheet['max_radius'].append(summary.at[id, 'max_radius'])
                 
             sheet = pd.DataFrame(sheet) #.sort_values(by=['total_bifurcations_count'], ascending=False)
             sheet = sheet[[
                 'structure_name', 'acronym', 'total_volume', 'total_signal_volume', 
-                'total_skeleton_volume', 'total_bifurcations_count', 'total_radius_amount', 'max_radius'
+                'total_skeleton_volume', 'total_bifurcations_count', 'total_trifurcations_count', 'total_radius_amount', 'max_radius'
             ]]
             
             sheet['total_volume_mm3'] = sheet['total_volume'] * voxel
@@ -155,6 +161,9 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
             sheet['total_signal_density'] = sheet['total_signal_volume'] / sheet['total_volume']
             sheet['total_skeleton_density'] = sheet['total_skeleton_volume'] / sheet['total_volume']
             sheet['total_bifurcations_density'] = sheet['total_bifurcations_count'] / sheet['total_volume']
+            sheet['total_trifurcations_density'] = sheet['total_trifurcations_count'] / sheet['total_volume']
             sheet['mean_radius'] = sheet['total_radius_amount'] / sheet['total_signal_volume']
                 
             sheet.fillna(0).to_excel(writer, sheet_name=f"Target Region", index=False)
+            
+    return summary

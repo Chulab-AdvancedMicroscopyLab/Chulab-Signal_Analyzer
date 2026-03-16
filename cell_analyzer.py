@@ -1,9 +1,9 @@
 """
 Usage:
 python cell_analyzer.py \
-    --mask_path             ./datas/neun_mask_ome.zarr/0 \
-    --annotation_path       ./datas/annotation_ome.zarr/0 \
-    --output_path           ./datas/neun_output \
+    --mask_path             project_20260119/20260119_11_37_12_Shaun_BV_ctrl_1_TH_561_cFOS_640_4x_z4_Destripe_DONE/Ch1_640_test_v0_mask.zarr \
+    --annotation_path       project_20260119/20260119_11_37_12_Shaun_BV_ctrl_1_TH_561_cFOS_640_4x_z4_Destripe_DONE/Ch1_640_test_v0_mask.zarr \
+    --output_path           project_20260119/20260119_11_37_12_Shaun_BV_ctrl_1_TH_561_cFOS_640_4x_z4_Destripe_DONE/Ch1_640_output \
     --chunk-size            128 128 128
 """
 
@@ -20,6 +20,7 @@ from dask.distributed import Client, LocalCluster
 
 from utils.analyzer_count_tools import numba_unique_cell
 from utils.analyzer_report_tools import create_cell_report
+from utils.concurrency import initialize_concurrency
 
 
 def check_and_load_zarr(path, component=None, chunk_size=None):
@@ -159,25 +160,31 @@ def _aggregate_signals(result_dict, full_brain, left_brain, right_brain):
 
 def process_analysis_report(region_signals, voxel, output_name, output_path):
     """
-    Generate Excel reports from signal dictionaries for multiple brain regions.
+    Generate Excel and CSV reports from signal dictionaries for multiple brain regions.
 
     Parameters:
         region_signals (dict): Keys are region names, values are signal dictionaries.
         voxel (tuple): Voxel size as a 3D tuple (x, y, z).
         output_name (str): Base name for the output files.
         output_path (str): Directory to save the reports.
-        structure_path (str): Path to the structure CSV file.
-        target_id (int, optional): ID for filtering specific brain structures.
     """
-    structure_path='./utils/structures.csv'
-    target_id=None
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    structure_path = os.path.join(script_dir, 'utils', 'structures.csv')
+    target_id = None
 
     os.makedirs(output_path, exist_ok=True)
     voxel_volume = np.prod(voxel)
 
     for region_name, signal in region_signals.items():
-        output_file = os.path.join(output_path, f'{output_name}_{region_name}_report.xlsx')
-        create_cell_report(signal, voxel_volume, output_file, structure_path, target_id)
+        output_file_xlsx = os.path.join(output_path, f'{output_name}_{region_name}_report.xlsx')
+        output_file_csv = os.path.join(output_path, f'{output_name}_{region_name}_report.csv')
+        
+        # Generate Excel and get the aggregated dataframe for CSV export
+        summary_df = create_cell_report(signal, voxel_volume, output_file_xlsx, structure_path, target_id)
+        
+        if summary_df is not None:
+            summary_df.to_csv(output_file_csv)
+            print(f"📊 Saved hierarchical CSV: {output_file_csv}")
 
 def main():
     """
@@ -217,6 +224,8 @@ def main():
                         help="Size of the median filter kernel (default: 3)")
     parser.add_argument("--z-per-slab", type=int, default=128,
                         help="Number of Z-slices to process per slab (default: 128). Adjust based on memory.")
+    parser.add_argument("--numba-threads", type=int, default=8,
+                        help="Number of Numba threads to use (default: 8).")
     parser.add_argument("--n-workers", type=int, default=8,
                         help="Number of Dask worker processes to start (default: 8).")
     parser.add_argument("--memory-limit", type=str, default='32GB',
@@ -224,6 +233,9 @@ def main():
 
     args = parser.parse_args()
     chunk_size = tuple(args.chunk_size) if args.chunk_size else None
+
+    initialize_concurrency(numba_threads=args.numba_threads, dask_threads=args.n_workers)
+
     cluster = LocalCluster(
         n_workers=args.n_workers,
         memory_limit=args.memory_limit
@@ -276,6 +288,8 @@ def main():
     right_brain_signal = {}
     
     checkpoint_path = os.path.join(args.output_path, "cell_counts.json")
+    coords_path = os.path.join(args.output_path, "cell_coordinates.json")
+    
     if os.path.exists(checkpoint_path):
         print(f"✅ Found checkpoint file, loading from: {checkpoint_path}")
         # Load from checkpoint and aggregate directly
@@ -288,13 +302,30 @@ def main():
         z_per_slab = args.z_per_slab
         img_dimension = mask_data.shape
 
-        with open(checkpoint_path, 'w') as f_checkpoint:
+        with open(checkpoint_path, 'w') as f_checkpoint, open(coords_path, 'w') as f_coords:
             for i in tqdm(range(0, img_dimension[0], z_per_slab)):
                 start_z, end_z = i, min(i + z_per_slab, img_dimension[0])
                 
                 anno_slab = anno_data[start_z:end_z].compute()
                 maxima_slab = maxima_data[start_z:end_z].compute()
                 hema_slab = hema_data[start_z:end_z].compute() if hema_data is not None else np.zeros_like(anno_slab)
+
+                # --- NEW: Extract and Save Individual Cell Coordinates ---
+                # Find all detected centroids (value 1) in the current slab
+                cell_indices = np.argwhere(maxima_slab == 1)
+                for local_z, y, x in cell_indices:
+                    global_z = int(local_z + start_z)
+                    anno_id = int(anno_slab[local_z, y, x])
+                    hema_id = int(hema_slab[local_z, y, x]) if hema_data is not None else 0
+                    
+                    coord_entry = {
+                        "z": global_z,
+                        "y": int(y),
+                        "x": int(x),
+                        "anno_id": anno_id,
+                        "hema_id": hema_id
+                    }
+                    f_coords.write(json.dumps(coord_entry) + '\n')
 
                 # Process the slab and get the dictionary of counts
                 result_dict = process_calculation_chunk(anno_slab, hema_slab, maxima_slab)
