@@ -1,6 +1,6 @@
 # Zarr File Analyzer
 
-This project provides tools to analyze biological structures from OME-Zarr volumes. Two main modules are provided: Cell Analyzer and Vessel Analyzer. Both tools automatically generate a comprehensive **Excel (.xlsx)** report and a flat **CSV (.csv)** summary file upon completion.
+This project provides tools to analyze biological structures from OME-Zarr volumes. Two main modules are provided: Cell Analyzer and Vessel Analyzer. Both tools automatically generate a comprehensive **Excel (.xlsx)** report upon completion.
 
 ---
 

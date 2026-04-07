@@ -1,9 +1,9 @@
 """
 Usage:
 python Chulab-Signal_Analyzer/vessel_analyzer.py \
-    --mask_path             /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_mask.zarr \
-    --annotation_path       /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_mask.zarr \
-    --output_path           /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_output \
+    --mask_path             /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_13_04_13_PC25J0014_treat_2_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_mask.zarr \
+    --annotation_path       /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_13_04_13_PC25J0014_treat_2_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_mask.zarr \
+    --output_path           /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_13_04_13_PC25J0014_treat_2_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_output \
     --chunk-size            128 128 128
 """
 
@@ -138,14 +138,9 @@ def process_analysis_report(region_signals, voxel, output_name, output_path):
 
     for region_name, signal in region_signals.items():
         output_file_xlsx = os.path.join(output_path, f'{output_name}_{region_name}_report.xlsx')
-        output_file_csv = os.path.join(output_path, f'{output_name}_{region_name}_report.csv')
         
-        # Generate Excel and get the aggregated dataframe for CSV export
-        summary_df = create_vessel_report(signal, voxel_volume, output_file_xlsx, structure_path, target_id)
-        
-        if summary_df is not None:
-            summary_df.to_csv(output_file_csv)
-            print(f"📊 Saved hierarchical CSV: {output_file_csv}")
+        # Generate Excel report
+        create_vessel_report(signal, voxel_volume, output_file_xlsx, structure_path, target_id)
 
 def main():
     """

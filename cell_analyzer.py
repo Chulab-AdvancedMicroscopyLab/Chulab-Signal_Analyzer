@@ -177,14 +177,9 @@ def process_analysis_report(region_signals, voxel, output_name, output_path):
 
     for region_name, signal in region_signals.items():
         output_file_xlsx = os.path.join(output_path, f'{output_name}_{region_name}_report.xlsx')
-        output_file_csv = os.path.join(output_path, f'{output_name}_{region_name}_report.csv')
         
-        # Generate Excel and get the aggregated dataframe for CSV export
-        summary_df = create_cell_report(signal, voxel_volume, output_file_xlsx, structure_path, target_id)
-        
-        if summary_df is not None:
-            summary_df.to_csv(output_file_csv)
-            print(f"📊 Saved hierarchical CSV: {output_file_csv}")
+        # Generate Excel report
+        create_cell_report(signal, voxel_volume, output_file_xlsx, structure_path, target_id)
 
 def main():
     """
