@@ -1,11 +1,33 @@
 """
 Usage:
-python cell_analyzer.py \
-    --mask_path             project_20260119/20260119_11_37_12_Shaun_BV_ctrl_1_TH_561_cFOS_640_4x_z4_Destripe_DONE/Ch1_640_test_v0_mask.zarr \
-    --annotation_path       project_20260119/20260119_11_37_12_Shaun_BV_ctrl_1_TH_561_cFOS_640_4x_z4_Destripe_DONE/Ch1_640_test_v0_mask.zarr \
-    --output_path           project_20260119/20260119_11_37_12_Shaun_BV_ctrl_1_TH_561_cFOS_640_4x_z4_Destripe_DONE/Ch1_640_output \
-    --chunk-size            128 128 128
+python Chulab-Signal_Analyzer/cell_analyzer.py --config configs/config.json
 """
+
+import sys
+import json
+from pathlib import Path
+
+def _pre_init_concurrency():
+    config_path = "configs/config.json"
+    for i, arg in enumerate(sys.argv):
+        if (arg == "--config" or arg == "-c") and i + 1 < len(sys.argv):
+            config_path = sys.argv[i + 1]
+            break
+    config = {}
+    if Path(config_path).exists():
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+        except Exception:
+            pass
+    resources = config.get("resources", {})
+    from utils.concurrency import initialize_concurrency
+    initialize_concurrency(
+        numba_threads=resources.get("numba_threads", 8),
+        dask_threads=resources.get("dask_threads", 8),
+    )
+
+_pre_init_concurrency()
 
 import time
 import os
@@ -40,13 +62,13 @@ def check_and_load_zarr(path, component=None, chunk_size=None):
         return None
 
     full_path = os.path.join(path, component) if component else path
-    if os.path.exists(full_path):
-        print(f"✅ Found: {full_path}")
-
-        # Load Zarr dataset with specified chunk size or auto-chunks
-        return da.from_zarr(full_path, chunks=chunk_size) if chunk_size else da.from_zarr(full_path)
-
-    return None
+    if not os.path.exists(full_path):
+        return None
+    if not os.path.exists(os.path.join(full_path, '.zarray')):
+        print(f"⚠️  Skipping (not a zarr array): {full_path}")
+        return None
+    print(f"✅ Found: {full_path}")
+    return da.from_zarr(full_path, chunks=chunk_size) if chunk_size else da.from_zarr(full_path)
 
 
 def process_filter_chunk(block, filter_size):
@@ -158,7 +180,7 @@ def _aggregate_signals(result_dict, full_brain, left_brain, right_brain):
         if value not in right_brain: right_brain[value] = nums[4:6]
         else: right_brain[value] = [x + y for x, y in zip(right_brain[value], nums[4:6])]
 
-def process_analysis_report(region_signals, voxel, output_name, output_path):
+def process_analysis_report(region_signals, voxel, output_name, output_path, annotation_map_path=None, mask_folder=""):
     """
     Generate Excel and CSV reports from signal dictionaries for multiple brain regions.
 
@@ -167,89 +189,37 @@ def process_analysis_report(region_signals, voxel, output_name, output_path):
         voxel (tuple): Voxel size as a 3D tuple (x, y, z).
         output_name (str): Base name for the output files.
         output_path (str): Directory to save the reports.
+        annotation_map_path (str, optional): Path to structures.csv.
     """
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    structure_path = os.path.join(script_dir, 'utils', 'structures.csv')
+    if annotation_map_path:
+        structure_path = annotation_map_path
+    else:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        structure_path = os.path.join(script_dir, 'utils', 'annotation_maps', 'allen_mouse_brain_structure.csv')
     target_id = None
 
     os.makedirs(output_path, exist_ok=True)
     voxel_volume = np.prod(voxel)
 
     for region_name, signal in region_signals.items():
-        output_file_xlsx = os.path.join(output_path, f'{output_name}_{region_name}_report.xlsx')
+        output_file_xlsx = os.path.join(output_path, f'{mask_folder}_{output_name}_{region_name}_report.xlsx')
         
         # Generate Excel report
         create_cell_report(signal, voxel_volume, output_file_xlsx, structure_path, target_id)
 
-def main():
-    """
-    Main function to process a 3D cell mask and generate analysis reports.
-
-    This function performs the following steps:
-    1. Parses command-line arguments for input/output Zarr paths and processing parameters.
-    2. Loads the input Zarr datasets for mask, annotation, and optionally hemisphere segmentation.
-    3. Applies a median box filter followed by a Gaussian blur using GPU acceleration.
-    4. Detects local maxima across the filtered image volume.
-    5. Computes signal counts and distributions across full, left, and right brain hemispheres.
-    6. Generates Excel reports for each region using the computed signals.
-
-    Command-line arguments:
-        mask_path (str): Path to the Zarr file containing the input cell mask.
-        annotation_path (str): Path to the annotation Zarr file.
-        output_path (str): Directory where final Excel reports will be saved.
-        --hemasphere_path (str, optional): Path to hemisphere segmentation Zarr file.
-        --voxel (float, optional): Voxel size for volume computation.
-        --chunk-size (int, optional): Override default chunk size for Dask processing.
-        --filter-size (int, optional): Size of the median filter kernel.
-        --filter-sigma (float, optional): Sigma value for the Gaussian blur.
-    """
-    parser = argparse.ArgumentParser(
-        description="Apply median filter to a Zarr file using Dask with map_overlap."
-    )
-    parser.add_argument("--mask_path", type=str, required=True, help="Zarr path to cell mask to be filtered.")
-    parser.add_argument("--annotation_path", type=str, required=True, help="Zarr path to annotation")
-    parser.add_argument("--output_path", type=str, required=True, help="Output path for temporary zarr and final report")
-    parser.add_argument("--hemasphere_path", type=str, default=None, 
-                        help="Zarr path to hemisphere segmentation.")
-    parser.add_argument("--voxel", type=float, nargs='+', default=(0.004, 0.00182, 0.00182),
-                        help="For final volume calculation. (default: 0.004, 0.00182, 0.00182)")
-    parser.add_argument("--chunk-size", type=int, nargs='+', default=None,
-                        help="Optional: Override chunk size for Dask processing (space-separated)")
-    parser.add_argument("--filter-size", type=int, default=3,
-                        help="Size of the median filter kernel (default: 3)")
-    parser.add_argument("--z-per-slab", type=int, default=128,
-                        help="Number of Z-slices to process per slab (default: 128). Adjust based on memory.")
-    parser.add_argument("--numba-threads", type=int, default=8,
-                        help="Number of Numba threads to use (default: 8).")
-    parser.add_argument("--n-workers", type=int, default=8,
-                        help="Number of Dask worker processes to start (default: 8).")
-    parser.add_argument("--memory-limit", type=str, default='32GB',
-                        help="Memory limit per Dask worker (e.g., '16GB', '256GB') (default: '32GB').")
-
-    args = parser.parse_args()
-    chunk_size = tuple(args.chunk_size) if args.chunk_size else None
-
-    initialize_concurrency(numba_threads=args.numba_threads, dask_threads=args.n_workers)
-
-    cluster = LocalCluster(
-        n_workers=args.n_workers,
-        memory_limit=args.memory_limit
-    )
-
-    # client = Client(cluster)
-    # print(f"Dashboard link: {client.dashboard_link}")
+def run_task(task):
+    chunk_size = tuple(task["chunk_size"]) if task.get("chunk_size") else None
 
     start_time = time.time()
-    # Load Zarr arrays
-    mask_data = check_and_load_zarr(args.mask_path, chunk_size=chunk_size)
-    anno_data = check_and_load_zarr(args.annotation_path, chunk_size=chunk_size)
-    hema_data = check_and_load_zarr(args.hemasphere_path, chunk_size=chunk_size)
+    mask_data = check_and_load_zarr(task["mask_path"], chunk_size=chunk_size)
+    anno_data = check_and_load_zarr(task["annotation_path"], chunk_size=chunk_size)
+    hema_data = check_and_load_zarr(task.get("hemasphere_path"), chunk_size=chunk_size)
 
     print(f"Mask shape: {mask_data.shape}") # type: ignore
     print(f"Annotation shape: {anno_data.shape}") # type: ignore
 
     # # **Step 1: Apply Filtering (Skip if Exists)**
-    # filtered_data = check_and_load_zarr(args.output_path, "filtered_mask.zarr", chunk_size=chunk_size)
+    # filtered_data = check_and_load_zarr(task["output_path"], "filtered_mask.zarr", chunk_size=chunk_size)
     # if filtered_data is None:
     #     with ProgressBar():
     #         print("🔄 Applying filtering...")
@@ -257,13 +227,13 @@ def main():
     #             process_filter_chunk,
     #             mask_data,
     #             dtype=np.uint8,
-    #             filter_size=args.filter_size,
+    #             filter_size=task.get("filter_size", 3),
     #         )
-    #         filtered_data.to_zarr(os.path.join(args.output_path, "filtered_mask.zarr"), overwrite=True)
-    #         filtered_data = da.from_zarr(os.path.join(args.output_path, "filtered_mask.zarr"))
+    #         filtered_data.to_zarr(os.path.join(task["output_path"], "filtered_mask.zarr"), overwrite=True)
+    #         filtered_data = da.from_zarr(os.path.join(task["output_path"], "filtered_mask.zarr"))
 
     # **Step 2: Compute Local Maxima (Skip if Exists)**
-    maxima_data = check_and_load_zarr(args.output_path, "maxima_mask.zarr", chunk_size=chunk_size)
+    maxima_data = check_and_load_zarr(task["output_path"], "maxima_mask.zarr", chunk_size=chunk_size)
     if maxima_data is None:
         with ProgressBar():
             print("🔄 Finding local maxima...")
@@ -274,16 +244,16 @@ def main():
                 depth=8,
                 dtype=np.uint8,
             )
-            maxima_data.to_zarr(os.path.join(args.output_path, "maxima_mask.zarr"), overwrite=True)
-            maxima_data = da.from_zarr(os.path.join(args.output_path, "maxima_mask.zarr"))
+            maxima_data.to_zarr(os.path.join(task["output_path"], "maxima_mask.zarr"), overwrite=True)
+            maxima_data = da.from_zarr(os.path.join(task["output_path"], "maxima_mask.zarr"))
 
     # **Step 3: Process Unique Values and Counts**
     full_brain_signal = {}
     left_brain_signal = {}
     right_brain_signal = {}
     
-    checkpoint_path = os.path.join(args.output_path, "cell_counts.json")
-    coords_path = os.path.join(args.output_path, "cell_coordinates.json")
+    checkpoint_path = os.path.join(task["output_path"], "cell_counts.json")
+    coords_path = os.path.join(task["output_path"], "cell_coordinates.json")
     
     if os.path.exists(checkpoint_path):
         print(f"✅ Found checkpoint file, loading from: {checkpoint_path}")
@@ -294,7 +264,7 @@ def main():
                 _aggregate_signals(result_dict, full_brain_signal, left_brain_signal, right_brain_signal)
     else:
         print("🔄 Processing unique values and counts...")
-        z_per_slab = args.z_per_slab
+        z_per_slab = task.get("z_per_slab", 128)
         img_dimension = mask_data.shape
 
         with open(checkpoint_path, 'w') as f_checkpoint, open(coords_path, 'w') as f_coords:
@@ -334,16 +304,28 @@ def main():
 
     # **Step 4: Save Results as a CSV Report**
     print("📄 Generating final report...")
-    region_signals = {
-        'full_brain': full_brain_signal,
-        'left_brain': left_brain_signal,
-        'right_brain': right_brain_signal
-    }
+    region_signals = {'full_brain': full_brain_signal}
+    if hema_data is not None:
+        region_signals['left_brain'] = left_brain_signal
+        region_signals['right_brain'] = right_brain_signal
 
-    process_analysis_report(region_signals, tuple(args.voxel), 'cell', args.output_path)
+    mask_folder = os.path.basename(os.path.dirname(task["mask_path"].rstrip("/")))
+    process_analysis_report(region_signals, tuple(task.get("voxel", [0.004, 0.00182, 0.00182])), 'cell', task["output_path"], task.get("annotation_map_path"), mask_folder)
 
     end_time = time.time()
     print(f"✅ Processing completed in {end_time - start_time:.2f} seconds")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Full 3D cell analysis pipeline.")
+    parser.add_argument("--config", "-c", type=str, default="configs/config.json", help="Path to config JSON")
+    cli_args = parser.parse_args()
+
+    with open(cli_args.config, 'r') as f:
+        full_config = json.load(f)
+
+    tasks = full_config.get("cell_analyzer", [])
+    if isinstance(tasks, dict):
+        tasks = [tasks]
+
+    for task in tasks:
+        run_task(task)

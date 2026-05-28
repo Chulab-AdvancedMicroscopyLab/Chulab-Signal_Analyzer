@@ -1,11 +1,33 @@
 """
 Usage:
-python Chulab-Signal_Analyzer/vessel_analyzer.py \
-    --mask_path             /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_13_04_13_PC25J0014_treat_2_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_mask.zarr \
-    --annotation_path       /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_13_04_13_PC25J0014_treat_2_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_mask.zarr \
-    --output_path           /mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_13_04_13_PC25J0014_treat_2_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_test_v1_output \
-    --chunk-size            128 128 128
+python Chulab-Signal_Analyzer/vessel_analyzer.py --config configs/config.json
 """
+
+import sys
+import json
+from pathlib import Path
+
+def _pre_init_concurrency():
+    config_path = "configs/config.json"
+    for i, arg in enumerate(sys.argv):
+        if (arg == "--config" or arg == "-c") and i + 1 < len(sys.argv):
+            config_path = sys.argv[i + 1]
+            break
+    config = {}
+    if Path(config_path).exists():
+        try:
+            with open(config_path, 'r') as f:
+                config = json.load(f)
+        except Exception:
+            pass
+    resources = config.get("resources", {})
+    from utils.concurrency import initialize_concurrency
+    initialize_concurrency(
+        numba_threads=resources.get("numba_threads", 8),
+        dask_threads=resources.get("dask_threads", 8),
+    )
+
+_pre_init_concurrency()
 
 import time
 import os
@@ -39,10 +61,13 @@ def check_and_load_zarr(path, component=None, chunk_size=None):
         return None
 
     full_path = os.path.join(path, component) if component else path
-    if os.path.exists(full_path):
-        print(f"✅ Found: {full_path}")
-        return da.from_zarr(full_path, chunks=chunk_size) if chunk_size else da.from_zarr(full_path)
-    return None
+    if not os.path.exists(full_path):
+        return None
+    if not os.path.exists(os.path.join(full_path, '.zarray')):
+        print(f"⚠️  Skipping (not a zarr array): {full_path}")
+        return None
+    print(f"✅ Found: {full_path}")
+    return da.from_zarr(full_path, chunks=chunk_size) if chunk_size else da.from_zarr(full_path)
 
 def process_filter_chunk(block, filter_size):
     """
@@ -119,7 +144,7 @@ def process_calculation_chunk(anno, hema, mask, skel, dist):
     """
     return dict(numba_unique_vessel(anno, hema, mask, skel, dist))
 
-def process_analysis_report(region_signals, voxel, output_name, output_path):
+def process_analysis_report(region_signals, voxel, output_name, output_path, annotation_map_path=None, mask_folder=""):
     """
     Generate Excel and CSV reports from signal dictionaries for multiple brain regions.
 
@@ -128,84 +153,37 @@ def process_analysis_report(region_signals, voxel, output_name, output_path):
         voxel (tuple): Voxel size as a 3D tuple (x, y, z).
         output_name (str): Base name for the output files.
         output_path (str): Directory to save the reports.
+        annotation_map_path (str, optional): Path to structures.csv.
     """
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    structure_path = os.path.join(script_dir, 'utils', 'structures.csv')
+    if annotation_map_path:
+        structure_path = annotation_map_path
+    else:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        structure_path = os.path.join(script_dir, 'utils', 'annotation_maps', 'allen_mouse_brain_structure.csv')
     target_id = None
 
     os.makedirs(output_path, exist_ok=True)
     voxel_volume = np.prod(voxel)
 
     for region_name, signal in region_signals.items():
-        output_file_xlsx = os.path.join(output_path, f'{output_name}_{region_name}_report.xlsx')
+        output_file_xlsx = os.path.join(output_path, f'{mask_folder}_{output_name}_{region_name}_report.xlsx')
         
         # Generate Excel report
         create_vessel_report(signal, voxel_volume, output_file_xlsx, structure_path, target_id)
 
-def main():
-    """
-    Main function for full 3D vessel analysis pipeline using Dask and GPU-accelerated image processing.
-
-    This pipeline processes a vessel mask and generates a statistical report containing
-    volume, length, radius, and other vessel-related features for full brain and each hemisphere.
-
-    Steps performed:
-    1. Parse command-line arguments.
-    2. Load Zarr datasets for vessel mask, annotation, and optional hemisphere segmentation.
-    3. Apply a Gaussian filter to smooth the input vessel mask.
-    4. Skeletonize the filtered mask to extract vessel centerlines.
-    5. Compute a distance transform to estimate vessel radius.
-    6. Extract vessel features in chunks, aggregating statistics for each brain region.
-    7. Generate Excel reports summarizing the extracted features.
-
-    Command-line arguments:
-        mask_path (str): Zarr path to the vessel mask.
-        annotation_path (str): Zarr path to annotation labels.
-        output_path (str): Output directory for the final Excel report.
-        --hemasphere_path (str, optional): Zarr path to hemisphere segmentation.
-        --voxel (float, optional): Voxel size for volume calculation. Default: (0.004, 0.00182, 0.00182).
-        --chunk-size (int, optional): Custom Dask chunk size (space-separated).
-        --filter-sigma (float, optional): Sigma for Gaussian filtering. Default: 0.3.
-    """
-    parser = argparse.ArgumentParser(description="Full 3D vessel analysis pipeline.")
-    parser.add_argument("--mask_path", type=str, required=True, help="Zarr path to the vessel mask.")
-    parser.add_argument("--annotation_path", type=str, required=True, help="Zarr path to annotation labels.")
-    parser.add_argument("--output_path", type=str, required=True, help="Output path for report and temporary zarr.")
-    parser.add_argument("--hemasphere_path", type=str, default=None, 
-                        help="Zarr path to hemisphere segmentation.")
-    parser.add_argument("--voxel", type=float, nargs='+', default=(0.004, 0.00182, 0.00182), 
-                        help="For final volume calculation. (default: 0.004, 0.00182, 0.00182)")
-    parser.add_argument("--chunk-size", type=int, nargs='+', default=None, 
-                        help="Optional: Override chunk size for Dask processing (space-separated)")
-    parser.add_argument("--filter-sigma", type=float, default=2,
-                        help="Sigma of the gaussian filter (default: 0.3)")
-    parser.add_argument("--z-per-slab", type=int, default=16,
-                        help="Number of Z-slices to process per slab (default: 16). Adjust based on memory.")
-    parser.add_argument("--numba-threads", type=int, default=8,
-                        help="Number of Numba threads to use (default: 8).")
-    parser.add_argument("--n-workers", type=int, default=8,
-                        help="Number of Dask worker processes to start (default: 8).")
-    parser.add_argument("--memory-limit", type=str, default='32GB',
-                        help="Memory limit per Dask worker (e.g., '16GB', '256GB') (default: '32GB').")
-
-    args = parser.parse_args()
-    chunk_size = tuple(args.chunk_size) if args.chunk_size else None
-
-    initialize_concurrency(numba_threads=args.numba_threads, dask_threads=args.n_workers)
-
-    # Note: Dask cluster setup is parsed but not yet fully integrated.
+def run_task(task):
+    chunk_size = tuple(task["chunk_size"]) if task.get("chunk_size") else None
 
     start_time = time.time()
-    # Load datasets
-    mask_data = check_and_load_zarr(args.mask_path, chunk_size=chunk_size)
-    anno_data = check_and_load_zarr(args.annotation_path, chunk_size=chunk_size)
-    hema_data = check_and_load_zarr(args.hemasphere_path, chunk_size=chunk_size)
+    mask_data = check_and_load_zarr(task["mask_path"], chunk_size=chunk_size)
+    anno_data = check_and_load_zarr(task["annotation_path"], chunk_size=chunk_size)
+    hema_data = check_and_load_zarr(task.get("hemasphere_path"), chunk_size=chunk_size)
 
     print(f"Mask shape: {mask_data.shape}") # type: ignore
     print(f"Annotation shape: {anno_data.shape}") # type: ignore
 
     # # Step 1: Filtering
-    # filtered_data = check_and_load_zarr(args.output_path, "filtered_mask.zarr", chunk_size=chunk_size)
+    # filtered_data = check_and_load_zarr(task["output_path"], "filtered_mask.zarr", chunk_size=chunk_size)
     # if filtered_data is None:
     #     print("🔄 Applying Gaussian filter...")
     #     with ProgressBar():
@@ -213,11 +191,11 @@ def main():
     #             process_filter_chunk,
     #             mask_data, dtype=np.uint8
     #         )
-    #         filtered_data.to_zarr(os.path.join(args.output_path, "filtered_mask.zarr"), overwrite=True)
-    #         filtered_data = da.from_zarr(os.path.join(args.output_path, "filtered_mask.zarr"))
+    #         filtered_data.to_zarr(os.path.join(task["output_path"], "filtered_mask.zarr"), overwrite=True)
+    #         filtered_data = da.from_zarr(os.path.join(task["output_path"], "filtered_mask.zarr"))
 
     # Step 2: Skeletonization
-    skeleton_data = check_and_load_zarr(args.output_path, "skeletonize_mask.zarr", chunk_size=chunk_size)
+    skeleton_data = check_and_load_zarr(task["output_path"], "skeletonize_mask.zarr", chunk_size=chunk_size)
     if skeleton_data is None:
         print("🔄 Skeletonizing vessel mask...")
         with ProgressBar():
@@ -225,11 +203,11 @@ def main():
                 process_skeletonize_chunk,
                 mask_data, dtype=np.uint8
             )
-            skeleton_data.to_zarr(os.path.join(args.output_path, "skeletonize_mask.zarr"), overwrite=True)
-            skeleton_data = da.from_zarr(os.path.join(args.output_path, "skeletonize_mask.zarr"))
+            skeleton_data.to_zarr(os.path.join(task["output_path"], "skeletonize_mask.zarr"), overwrite=True)
+            skeleton_data = da.from_zarr(os.path.join(task["output_path"], "skeletonize_mask.zarr"))
 
     # Step 3: Distance Transform
-    distance_data = check_and_load_zarr(args.output_path, "distance_mask.zarr", chunk_size=chunk_size)
+    distance_data = check_and_load_zarr(task["output_path"], "distance_mask.zarr", chunk_size=chunk_size)
     if distance_data is None:
         print("🔄 Calculating distance transform...")
         with ProgressBar():
@@ -237,8 +215,8 @@ def main():
                 process_distance_transform,
                 mask_data, dtype=np.float32
             )
-            distance_data.to_zarr(os.path.join(args.output_path, "distance_mask.zarr"), overwrite=True)
-            distance_data = da.from_zarr(os.path.join(args.output_path, "distance_mask.zarr"))
+            distance_data.to_zarr(os.path.join(task["output_path"], "distance_mask.zarr"), overwrite=True)
+            distance_data = da.from_zarr(os.path.join(task["output_path"], "distance_mask.zarr"))
 
     # Step 4: Feature Extraction
     print("🔄 Extracting features...")
@@ -247,8 +225,8 @@ def main():
     right_brain_signal = {}
     img_dimension = mask_data.shape # type: ignore
 
-    for i in tqdm(range(0, img_dimension[0], args.z_per_slab)):
-        start_i, end_i = i, min(i + args.z_per_slab, img_dimension[0])
+    for i in tqdm(range(0, img_dimension[0], task.get("z_per_slab", 16))):
+        start_i, end_i = i, min(i + task.get("z_per_slab", 16), img_dimension[0])
         if hema_data is None:
             anno_chunk, mask_chunk, skel_chunk, dist_chunk = da.compute(
                 anno_data[start_i:end_i], # type: ignore
@@ -276,37 +254,52 @@ def main():
 
         for value, nums in result.items():
             if value not in full_brain_signal:
-                full_brain_signal[value] = nums[:7]
+                full_brain_signal[value] = nums[0:9].copy()
             else:
                 full_brain_signal[value][:6] += nums[:6]
-                if nums[6] > full_brain_signal[value][6]:
-                    full_brain_signal[value][6] = nums[6]
+                full_brain_signal[value][6] += nums[6]                          # radius_sq
+                if nums[7] > full_brain_signal[value][7]: full_brain_signal[value][7] = nums[7]  # max
+                if nums[8] < full_brain_signal[value][8]: full_brain_signal[value][8] = nums[8]  # min
 
             if value not in left_brain_signal:
-                left_brain_signal[value] = nums[7:14]
+                left_brain_signal[value] = nums[9:18].copy()
             else:
-                left_brain_signal[value][:6] += nums[7:13]
-                if nums[13] > left_brain_signal[value][6]:
-                    left_brain_signal[value][6] = nums[13]
+                left_brain_signal[value][:6] += nums[9:15]
+                left_brain_signal[value][6] += nums[15]
+                if nums[16] > left_brain_signal[value][7]: left_brain_signal[value][7] = nums[16]
+                if nums[17] < left_brain_signal[value][8]: left_brain_signal[value][8] = nums[17]
 
             if value not in right_brain_signal:
-                right_brain_signal[value] = nums[14:]
+                right_brain_signal[value] = nums[18:27].copy()
             else:
-                right_brain_signal[value][:6] += nums[14:20]
-                if nums[20] > right_brain_signal[value][6]:
-                    right_brain_signal[value][6] = nums[20]
+                right_brain_signal[value][:6] += nums[18:24]
+                right_brain_signal[value][6] += nums[24]
+                if nums[25] > right_brain_signal[value][7]: right_brain_signal[value][7] = nums[25]
+                if nums[26] < right_brain_signal[value][8]: right_brain_signal[value][8] = nums[26]
 
     # Step 5: Report Generation
     print("📄 Generating final report...")
-    region_signals = {
-        'full_brain': full_brain_signal,
-        'left_brain': left_brain_signal,
-        'right_brain': right_brain_signal
-    }
+    region_signals = {'full_brain': full_brain_signal}
+    if hema_data is not None:
+        region_signals['left_brain'] = left_brain_signal
+        region_signals['right_brain'] = right_brain_signal
 
-    process_analysis_report(region_signals, tuple(args.voxel), 'vessel', args.output_path)
+    mask_folder = os.path.basename(os.path.dirname(task["mask_path"].rstrip("/")))
+    process_analysis_report(region_signals, tuple(task.get("voxel", [0.004, 0.00182, 0.00182])), 'vessel', task["output_path"], task.get("annotation_map_path"), mask_folder)
 
     print(f"✅ Processing completed in {time.time() - start_time:.2f} seconds")
 
 if __name__ == "__main__":
-    main()
+    parser = argparse.ArgumentParser(description="Full 3D vessel analysis pipeline.")
+    parser.add_argument("--config", "-c", type=str, default="configs/config.json", help="Path to config JSON")
+    cli_args = parser.parse_args()
+
+    with open(cli_args.config, 'r') as f:
+        full_config = json.load(f)
+
+    tasks = full_config.get("vessel_analyzer", [])
+    if isinstance(tasks, dict):
+        tasks = [tasks]
+
+    for task in tasks:
+        run_task(task)

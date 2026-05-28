@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 from collections import defaultdict
 
@@ -79,8 +80,10 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
         structure = pd.read_csv(structure_path)
         
         summary = pd.DataFrame(list_signal, columns=[
-            'id', 'total_volume', 'total_signal_volume', 'total_skeleton_volume', 
-            'total_bifurcations_count', 'total_trifurcations_count', 'total_radius_amount', 'max_radius'
+            'id',
+            'total_volume', 'total_signal_volume', 'total_skeleton_volume',
+            'total_bifurcations_count', 'total_trifurcations_count',
+            'total_radius_amount', 'total_radius_sq', 'max_radius', 'min_radius'
         ])
         summary = pd.merge(structure, summary, on='id', how='left').fillna(0)
         summary.set_index('id', inplace = True)
@@ -102,6 +105,11 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
                 summary.at[id, 'total_bifurcations_count'] += temp['total_bifurcations_count'].sum()
                 summary.at[id, 'total_trifurcations_count'] += temp['total_trifurcations_count'].sum()
                 summary.at[id, 'total_radius_amount'] += temp['total_radius_amount'].sum()
+                summary.at[id, 'total_radius_sq'] += temp['total_radius_sq'].sum()
+                valid_min = temp['min_radius'].replace([np.inf], np.nan).dropna()
+                if not valid_min.empty:
+                    cur = summary.at[id, 'min_radius']
+                    summary.at[id, 'min_radius'] = valid_min.min() if (cur == 0 or np.isinf(cur)) else min(cur, valid_min.min())
                 if pd.isna(summary.at[id, 'max_radius']):
                     summary.at[id, 'max_radius'] = temp['max_radius'].max()
                 else:
@@ -115,26 +123,31 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
                 sheet['total_bifurcations_count'].append(summary.at[id, 'total_bifurcations_count'])
                 sheet['total_trifurcations_count'].append(summary.at[id, 'total_trifurcations_count'])
                 sheet['total_radius_amount'].append(summary.at[id, 'total_radius_amount'])
+                sheet['total_radius_sq'].append(summary.at[id, 'total_radius_sq'])
                 sheet['max_radius'].append(summary.at[id, 'max_radius'])
- 
-            sheet = pd.DataFrame(sheet) #.sort_values(by=['total_bifurcations_count'], ascending=False)
+                sheet['min_radius'].append(summary.at[id, 'min_radius'])
+
+            sheet = pd.DataFrame(sheet)
             sheet = sheet[[
-                'structure_name', 'acronym', 'total_volume', 'total_signal_volume', 
-                'total_skeleton_volume', 'total_bifurcations_count', 'total_trifurcations_count', 'total_radius_amount', 'max_radius'
+                'structure_name', 'acronym', 'total_volume', 'total_signal_volume',
+                'total_skeleton_volume', 'total_bifurcations_count', 'total_trifurcations_count',
+                'total_radius_amount', 'total_radius_sq', 'max_radius', 'min_radius'
             ]]
-            
+
             sheet['total_volume_mm3'] = sheet['total_volume'] * voxel
             sheet['total_signal_volume_mm3'] = sheet['total_signal_volume'] * voxel
             sheet['total_skeleton_volume_mm3'] = sheet['total_skeleton_volume'] * voxel
-            
+
             sheet['total_signal_density'] = sheet['total_signal_volume'] / sheet['total_volume']
             sheet['total_skeleton_density'] = sheet['total_skeleton_volume'] / sheet['total_volume']
             sheet['total_bifurcations_density'] = sheet['total_bifurcations_count'] / sheet['total_volume']
             sheet['total_trifurcations_density'] = sheet['total_trifurcations_count'] / sheet['total_volume']
-            sheet['mean_radius'] = sheet['total_radius_amount'] / sheet['total_signal_volume']
-            
+            n = sheet['total_skeleton_volume'].replace(0, np.nan)
+            sheet['mean_radius'] = sheet['total_radius_amount'] / n
+            sheet['std_radius'] = np.sqrt((sheet['total_radius_sq'] / n - sheet['mean_radius'] ** 2).clip(0))
+
             sheet.fillna(0).to_excel(writer, sheet_name=f"Tier {tier}", index=False)
-        
+
         if target_id is not None:
             sheet = defaultdict(list)
             for id in target_id:
@@ -147,23 +160,27 @@ def create_vessel_report(signal, voxel, output_path, structure_path = './structu
                 sheet['total_trifurcations_count'].append(summary.at[id, 'total_trifurcations_count'])
                 sheet['total_radius_amount'].append(summary.at[id, 'total_radius_amount'])
                 sheet['max_radius'].append(summary.at[id, 'max_radius'])
-                
-            sheet = pd.DataFrame(sheet) #.sort_values(by=['total_bifurcations_count'], ascending=False)
+                sheet['min_radius'].append(summary.at[id, 'min_radius'])
+                sheet['total_radius_sq'].append(summary.at[id, 'total_radius_sq'])
+
+            sheet = pd.DataFrame(sheet)
             sheet = sheet[[
-                'structure_name', 'acronym', 'total_volume', 'total_signal_volume', 
-                'total_skeleton_volume', 'total_bifurcations_count', 'total_trifurcations_count', 'total_radius_amount', 'max_radius'
+                'structure_name', 'acronym', 'total_volume', 'total_signal_volume',
+                'total_skeleton_volume', 'total_bifurcations_count', 'total_trifurcations_count',
+                'total_radius_amount', 'max_radius', 'min_radius'
             ]]
-            
+
             sheet['total_volume_mm3'] = sheet['total_volume'] * voxel
             sheet['total_signal_volume_mm3'] = sheet['total_signal_volume'] * voxel
             sheet['total_skeleton_volume_mm3'] = sheet['total_skeleton_volume'] * voxel
-            
+
             sheet['total_signal_density'] = sheet['total_signal_volume'] / sheet['total_volume']
             sheet['total_skeleton_density'] = sheet['total_skeleton_volume'] / sheet['total_volume']
             sheet['total_bifurcations_density'] = sheet['total_bifurcations_count'] / sheet['total_volume']
             sheet['total_trifurcations_density'] = sheet['total_trifurcations_count'] / sheet['total_volume']
-            sheet['mean_radius'] = sheet['total_radius_amount'] / sheet['total_signal_volume']
-                
+            sheet['mean_radius'] = sheet['total_radius_amount'] / sheet['total_skeleton_volume']
+            sheet['std_radius'] = np.sqrt((sheet['total_radius_sq'] / sheet['total_skeleton_volume'].replace(0, np.nan) - sheet['mean_radius'] ** 2).clip(0))
+
             sheet.fillna(0).to_excel(writer, sheet_name=f"Target Region", index=False)
             
     return summary
