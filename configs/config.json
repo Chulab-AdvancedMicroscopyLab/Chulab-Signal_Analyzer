@@ -6,24 +6,724 @@
   },
   "vessel_analyzer": [
     {
-      "mask_path": "/mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_mask.zarr",
-      "annotation_path": "/mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_anno.zarr",
-      "output_path": "/mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260310_12_24_43_PC25J0006_ctrl_3_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_output",
-      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/tumor_structure.csv",
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_central/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_central/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_central/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
       "hemasphere_path": null,
-      "voxel": [0.002, 0.0018, 0.0018],
-      "chunk_size": [128, 128, 128],
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
       "filter_sigma": 3,
       "z_per_slab": 128
     },
     {
-      "mask_path": "/mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260312_12_09_11_PC25J0018_treat_4_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_mask.zarr",
-      "annotation_path": "/mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260312_12_09_11_PC25J0018_treat_4_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_anno.zarr",
-      "output_path": "/mnt/DAS218T/Ian_Huang/project_20260310_tumor/20260312_12_09_11_PC25J0018_treat_4_tumor_CD31_640_4x_z2_Destripe_DONE/All_Channels_output",
-      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/tumor_structure.csv",
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_margin/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_margin/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_margin/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
       "hemasphere_path": null,
-      "voxel": [0.002, 0.0018, 0.0018],
-      "chunk_size": [128, 128, 128],
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_submargin/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_submargin/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_submargin/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_wholestrip/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_wholestrip/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0006_ctrl_3_tumor_wholestrip/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_center-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_center-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_center-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_center-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_center-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_center-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_margin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_margin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_margin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_margin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_margin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_margin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_submargin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_submargin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_submargin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_submargin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_submargin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0008_ctrl_4_tumor_submargin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_center-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_center-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_center-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_center-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_center-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_center-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_margin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_margin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_margin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_margin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_margin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_margin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_submargin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_submargin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_submargin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_submargin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_submargin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0010_ctrl_5_tumor_submargin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_center-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_center-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_center-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_center-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_center-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_center-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_margin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_margin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_margin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_margin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_margin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_margin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_submargin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_submargin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_submargin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_submargin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_submargin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0014_treat_2_tumor_submargin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_center-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_center-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_center-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_center-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_center-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_center-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_margin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_margin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_margin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_margin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_margin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_margin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_submargin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_submargin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_submargin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_submargin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_submargin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0016_treat_3_tumor_submargin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_center/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_center/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_center/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_margin/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_margin/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_margin/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_submargin/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_submargin/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_submargin/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_wholestrip/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_wholestrip/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0018_treat_4_tumor_wholestrip/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_center-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_center-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_center-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_center-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_center-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_center-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_margin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_margin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_margin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_margin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_margin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_margin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_submargin-1/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_submargin-1/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_submargin-1/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
+      "filter_sigma": 3,
+      "z_per_slab": 128
+    },
+    {
+      "mask_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_submargin-2/images_mask.zarr",
+      "annotation_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_submargin-2/images_anno.zarr",
+      "output_path": "/mnt/DAS100T/Ya-Hui_Lin/BV_normalization/BV_ROIs/PC25J0020_treat_5_tumor_submargin-2/images_output",
+      "annotation_map_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
+      "hemasphere_path": null,
+      "voxel": [
+        0.002,
+        0.0018,
+        0.0018
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
       "filter_sigma": 3,
       "z_per_slab": 128
     }
@@ -35,8 +735,16 @@
       "output_path": "/mnt/DAS218T/Ian_Huang/project_20260224_Shaun_BV/20260224_16_55_48_PC26A0085_VNS_1_brain_PI_561_cFOS_640_4x_z4_Destripe_DONE/Ex_640_Em_690-50_Ch3_stitched_output",
       "hemasphere_path": "/mnt/DAS218T/Ian_Huang/Chulab-Signal_Analyzer/utils/annotation_maps/single_value_structure.csv",
       "annotation_map_path": null,
-      "voxel": [0.004, 0.00182, 0.00182],
-      "chunk_size": [128, 128, 128],
+      "voxel": [
+        0.004,
+        0.00182,
+        0.00182
+      ],
+      "chunk_size": [
+        128,
+        128,
+        128
+      ],
       "filter_size": 3,
       "z_per_slab": 128
     }

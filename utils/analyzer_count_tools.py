@@ -91,10 +91,11 @@ def numba_unique_vessel(anno, hema, mask, skel, dist):
 
                 if skel[i, j, k] > 0:
                     d = dist[i, j, k]
-                    unique_counts[val][5] += d
-                    unique_counts[val][6] += d * d
-                    if d < unique_counts[val][8]:
-                        unique_counts[val][8] = d
+                    if d > 0:
+                        unique_counts[val][5] += d
+                        unique_counts[val][6] += d * d
+                        if d < unique_counts[val][8]:
+                            unique_counts[val][8] = d
 
                 if dist[i, j, k] > unique_counts[val][7]:
                     unique_counts[val][7] = dist[i, j, k]
@@ -108,10 +109,11 @@ def numba_unique_vessel(anno, hema, mask, skel, dist):
                     if skel[i, j, k] > 0:
                         d = dist[i, j, k]
                         unique_counts[val][11] += 1
-                        unique_counts[val][14] += d
-                        unique_counts[val][15] += d * d
-                        if d < unique_counts[val][17]:
-                            unique_counts[val][17] = d
+                        if d > 0:
+                            unique_counts[val][14] += d
+                            unique_counts[val][15] += d * d
+                            if d < unique_counts[val][17]:
+                                unique_counts[val][17] = d
                     if skel[i, j, k] == 2:
                         unique_counts[val][12] += 1
                     if skel[i, j, k] == 3:
@@ -126,10 +128,11 @@ def numba_unique_vessel(anno, hema, mask, skel, dist):
                     if skel[i, j, k] > 0:
                         d = dist[i, j, k]
                         unique_counts[val][20] += 1
-                        unique_counts[val][23] += d
-                        unique_counts[val][24] += d * d
-                        if d < unique_counts[val][26]:
-                            unique_counts[val][26] = d
+                        if d > 0:
+                            unique_counts[val][23] += d
+                            unique_counts[val][24] += d * d
+                            if d < unique_counts[val][26]:
+                                unique_counts[val][26] = d
                     if skel[i, j, k] == 2:
                         unique_counts[val][21] += 1
                     if skel[i, j, k] == 3:
