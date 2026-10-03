@@ -39,7 +39,7 @@ from tqdm import tqdm
 from dask.diagnostics.progress import ProgressBar
 from skimage.morphology import skeletonize
 from skimage.measure import regionprops
-from scipy.ndimage import convolve, label, distance_transform_edt, median_filter
+from scipy.ndimage import binary_fill_holes, convolve, label, distance_transform_edt, median_filter
 
 from utils.analyzer_count_tools import numba_unique_vessel
 from utils.analyzer_report_tools import create_vessel_report
@@ -96,9 +96,34 @@ def process_filter_chunk(block, filter_size):
     
     return final_mask
 
-def process_skeletonize_chunk(block):
-    """Skeletonize a binary 3D block and mark bifurcation/trifurcation points."""
+def fill_small_holes(mask, max_px):
+    """
+    Fill in-plane holes of at most max_px pixels (per Z slice) and fully enclosed 3D cavities.
+
+    Small holes inside a vessel make its skeleton loop around them, creating false
+    bifurcations/trifurcations. Cavities touching the block border are left untouched.
+    """
+    m = mask > 0
+    for z in range(m.shape[0]):
+        holes = binary_fill_holes(m[z]) & ~m[z]
+        lab, n = label(holes)
+        if n:
+            small = np.bincount(lab.ravel()) <= max_px
+            small[0] = False
+            m[z][small[lab]] = True
+    bg, nb = label(~m, structure=np.ones((3, 3, 3)))
+    edge = np.unique(np.concatenate([f.ravel() for f in (bg[0], bg[-1], bg[:, 0], bg[:, -1], bg[:, :, 0], bg[:, :, -1])]))
+    enclosed = np.ones(nb + 1, dtype=bool)
+    enclosed[edge] = False
+    enclosed[0] = False
+    m[enclosed[bg]] = True
+    return m.astype(np.uint8)
+
+def process_skeletonize_chunk(block, fill_holes_px=0):
+    """Skeletonize a binary 3D block (optionally after filling small holes) and mark bifurcation/trifurcation points."""
     block[block > 0] = 1
+    if fill_holes_px > 0:
+        block = fill_small_holes(block, fill_holes_px)
     skeleton = skeletonize(block.astype(np.uint8)).astype(np.uint8)
     skeleton *= block
 
@@ -195,16 +220,18 @@ def run_task(task):
     #         filtered_data = da.from_zarr(os.path.join(task["output_path"], "filtered_mask.zarr"))
 
     # Step 2: Skeletonization
-    skeleton_data = check_and_load_zarr(task["output_path"], "skeletonize_mask.zarr", chunk_size=chunk_size)
+    fill_holes_px = task.get("fill_holes_px", 0)  # fill holes up to this many pixels before skeletonizing; 0 = off
+    skel_name = f"skeletonize_mask_fill{fill_holes_px}.zarr" if fill_holes_px else "skeletonize_mask.zarr"
+    skeleton_data = check_and_load_zarr(task["output_path"], skel_name, chunk_size=chunk_size)
     if skeleton_data is None:
-        print("🔄 Skeletonizing vessel mask...")
+        print(f"🔄 Skeletonizing vessel mask (fill_holes_px={fill_holes_px})...")
         with ProgressBar():
             skeleton_data = da.map_blocks(
                 process_skeletonize_chunk,
-                mask_data, dtype=np.uint8
+                mask_data, dtype=np.uint8, fill_holes_px=fill_holes_px
             )
-            skeleton_data.to_zarr(os.path.join(task["output_path"], "skeletonize_mask.zarr"), overwrite=True)
-            skeleton_data = da.from_zarr(os.path.join(task["output_path"], "skeletonize_mask.zarr"))
+            skeleton_data.to_zarr(os.path.join(task["output_path"], skel_name), overwrite=True)
+            skeleton_data = da.from_zarr(os.path.join(task["output_path"], skel_name))
 
     # Step 3: Distance Transform
     distance_data = check_and_load_zarr(task["output_path"], "distance_mask.zarr", chunk_size=chunk_size)
