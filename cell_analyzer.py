@@ -99,7 +99,7 @@ def process_filter_chunk(block, filter_size):
     return final_mask
 
 
-def process_local_maxima_chunk(block):
+def process_local_maxima_chunk(block, min_cell_size=0):
     """
     Detects local maxima in a 3D image block using SciPy and NumPy.
 
@@ -118,6 +118,13 @@ def process_local_maxima_chunk(block):
     # Create a binary version of the block to match the original function's logic.
     # This also prevents modifying the input array in-place.
     binary_block = (block > 0).astype(np.uint8)
+    if min_cell_size > 0:
+        # drop specks smaller than min_cell_size voxels (26-connected) so they are not counted as cells
+        lab, n = ndi.label(binary_block, structure=np.ones((3, 3, 3)))
+        if n:
+            keep = np.bincount(lab.ravel()) >= min_cell_size
+            keep[0] = False
+            binary_block = keep[lab].astype(np.uint8)
 
     # Apply a Gaussian blur. SciPy needs a float input for this.
     blurred_block = ndi.gaussian_filter(binary_block.astype(np.float32), sigma=(1, 1, 1))
@@ -233,7 +240,9 @@ def run_task(task):
     #         filtered_data = da.from_zarr(os.path.join(task["output_path"], "filtered_mask.zarr"))
 
     # **Step 2: Compute Local Maxima (Skip if Exists)**
-    maxima_data = check_and_load_zarr(task["output_path"], "maxima_mask.zarr", chunk_size=chunk_size)
+    min_cell_size = task.get("min_cell_size", 0)  # voxels; smaller blobs are ignored (0 = count everything)
+    suffix = f"_min{min_cell_size}" if min_cell_size else ""
+    maxima_data = check_and_load_zarr(task["output_path"], f"maxima_mask{suffix}.zarr", chunk_size=chunk_size)
     if maxima_data is None:
         with ProgressBar():
             print("🔄 Finding local maxima...")
@@ -243,17 +252,18 @@ def run_task(task):
                 trim=True,
                 depth=8,
                 dtype=np.uint8,
+                min_cell_size=min_cell_size,
             )
-            maxima_data.to_zarr(os.path.join(task["output_path"], "maxima_mask.zarr"), overwrite=True)
-            maxima_data = da.from_zarr(os.path.join(task["output_path"], "maxima_mask.zarr"))
+            maxima_data.to_zarr(os.path.join(task["output_path"], f"maxima_mask{suffix}.zarr"), overwrite=True)
+            maxima_data = da.from_zarr(os.path.join(task["output_path"], f"maxima_mask{suffix}.zarr"))
 
     # **Step 3: Process Unique Values and Counts**
     full_brain_signal = {}
     left_brain_signal = {}
     right_brain_signal = {}
     
-    checkpoint_path = os.path.join(task["output_path"], "cell_counts.json")
-    coords_path = os.path.join(task["output_path"], "cell_coordinates.json")
+    checkpoint_path = os.path.join(task["output_path"], f"cell_counts{suffix}.json")
+    coords_path = os.path.join(task["output_path"], f"cell_coordinates{suffix}.json")
     
     if os.path.exists(checkpoint_path):
         print(f"✅ Found checkpoint file, loading from: {checkpoint_path}")
